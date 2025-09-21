@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Flores para ti</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Dancing Script', cursive;
+      color: white;
+    }
+    #canvas { display: block; }
+    .header {
+      position: absolute;
+      top: 40px;
+      width: 100%;
+      text-align: center;
+      -webkit-text-stroke: 1px black;
+      text-shadow: 2px 2px 6px black;
+    }
+    h1 { font-size: clamp(2.2rem, 7vw, 3.5rem); margin: 0; }
+    .message {
+      font-size: clamp(2rem, 6vw, 3rem);
+      margin-top: 20px;
+      color: #fff9c4;
+      opacity: 0;
+      font-weight: bold;
+    }
+    @keyframes pulseText {
+      0% { filter: brightness(100%); }
+      50% { filter: brightness(140%); }
+      100% { filter: brightness(100%); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="header">
+    <h1><br><br>Un solo girasol, para recordarte que eres mi sol cada día 🌞<br>Mi Nasli</h1>
+    <br>
+    <div class="message"><span>Gracias por estos 6 meses de mucho amor ❤️</span></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // 🌌 Estrellas
+    const stars = Array.from({length: 100}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5
+    }));
+
+    // 🌠 Estrellas fugaces
+    const shootingStars = [];
+    setInterval(() => {
+      shootingStars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height/2,
+        len: 200,
+        speed: 8,
+        opacity: 1
+      });
+    }, 4000);
+
+    // 🎉 Confeti
+    const confetti = [];
+    setInterval(() => {
+      confetti.push({
+        x: Math.random() * canvas.width,
+        y: -10,
+        r: 5 + Math.random() * 5,
+        color: ["gold", "yellow", "orange"][Math.floor(Math.random() * 3)],
+        speed: 2 + Math.random() * 3
+      });
+    }, 200);
+
+    // 🌻 Imagen PNG de girasoles (dibujada en canvas)
+    const sunflowerImg = new Image();
+    sunflowerImg.src = "girasoles.png"; // pon tu archivo en la misma carpeta
+
+    // 🎬 Animación principal
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fondo degradado
+      const grad = ctx.createRadialGradient(canvas.width/2, canvas.height, 0,
+                                            canvas.width/2, canvas.height, canvas.height);
+      grad.addColorStop(0, "#1b2735");
+      grad.addColorStop(1, "#090a0f");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Estrellas
+      ctx.fillStyle = "white";
+      stars.forEach(s => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      // Estrellas fugaces
+      for (let i=0; i<shootingStars.length; i++) {
+        let s = shootingStars[i];
+        ctx.strokeStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x - s.len, s.y - s.len);
+        ctx.stroke();
+        s.x += s.speed;
+        s.y += s.speed;
+        s.opacity -= 0.01;
+        if (s.opacity <= 0) shootingStars.splice(i,1);
+      }
+
+      // Confeti
+      confetti.forEach((c,i) => {
+        ctx.fillStyle = c.color;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
+        ctx.fill();
+        c.y += c.speed;
+        if (c.y > canvas.height) confetti.splice(i,1);
+      });
+
+      // Dibujar girasoles al centro inferior
+      if (sunflowerImg.complete) {
+        const imgWidth = canvas.width > 600 ? 400 : 250;
+        const imgHeight = imgWidth * (sunflowerImg.height / sunflowerImg.width);
+        ctx.drawImage(
+          sunflowerImg,
+          canvas.width/2 - imgWidth/2,
+          canvas.height - imgHeight - 20,
+          imgWidth,
+          imgHeight
+        );
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Texto con pulso
+    setTimeout(() => {
+      const msg = document.querySelector(".message");
+      msg.style.opacity = 1;
+      msg.querySelector("span").style.animation = "pulseText 2s infinite";
+    }, 4000);
+  </script>
+</body>
+</html>
